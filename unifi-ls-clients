@@ -18,17 +18,22 @@ c = Controller(args.controller, args.username, args.password, args.port, args.ve
 aps = c.get_aps()
 ap_names = dict([(ap['mac'], ap.get('name')) for ap in aps])
 clients = c.get_clients()
-clients.sort(key=lambda x: -x['rssi'])
 
-FORMAT = '%-16s  %18s  %-12s  %4s  %4s  %3s  %3s'
-print(FORMAT % ('NAME', 'MAC', 'AP', 'CHAN', 'RSSI', 'RX', 'TX'))
+FORMAT = '%-32s  %18s  %-15s %-16s %-20s %5s %5s %3s %3s'
+print(FORMAT % ('NAME', 'MAC', 'IP ADDRESS', 'NETWORK', 'AP', 'CHAN', 'RSSI', 'RX', 'TX'))
 for client in clients:
-    ap_name = ap_names[client['ap_mac']]
-    name = client.get('hostname') or client.get('ip', 'Unknown')
-    rssi = client['rssi']
+    name = client.get('name') or client.get('hostname') or client.get('ip', 'Unknown')
     mac = client['mac']
-    rx = int(client['rx_rate'] / 1000)
-    tx = int(client['tx_rate'] / 1000)
-    channel = client['channel']
+    ip = client.get('ip', 'Unknown')
+    network = client.get('network')
 
-    print(FORMAT % (name, mac, ap_name, channel, rssi, rx, tx))
+    ap_name, rssi, rx, tx, channel = ("",)*5 
+    is_wired = client.get('is_wired', True)
+    if not is_wired:
+       ap_name = ap_names[client['ap_mac']]
+       rssi = client['rssi']
+       rx = int(client['rx_rate'] / 1000)
+       tx = int(client['tx_rate'] / 1000)
+       channel = client['channel']
+
+    print(FORMAT % (name, mac, ip, network, ap_name, channel, rssi, rx, tx))
